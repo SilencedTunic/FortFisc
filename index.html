@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plano de Execução do Projeto FortFisc - ano 2025</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js for data visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Feather Icons for UI elements -->
+    <script src="https://unpkg.com/feather-icons"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5; /* A slightly darker, more modern background */
+        }
+        /* Custom styles for a more polished look */
+        .card {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.07);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid #e5e7eb;
+        }
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.1);
+        }
+        .kpi-card {
+            border-left-width: 4px;
+        }
+        .tab-btn {
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+        }
+        .tab-btn.active {
+            border-bottom-color: #0d9488; /* theme-teal-600 */
+            color: #0d9488;
+        }
+        .filter-btn {
+             transition: all 0.2s ease-in-out;
+        }
+        .filter-btn.active {
+            background-color: #0d9488;
+            color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        /* Styles for Modal */
+        .modal-overlay {
+            transition: opacity 0.3s ease;
+        }
+        .modal-content {
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            transform: translateY(-20px);
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .modal-overlay.active .modal-content {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="text-slate-800">
+
+    <!-- Main Container -->
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
+        
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <div class="inline-block bg-white p-3 rounded-full shadow-md mb-4">
+                <i data-feather="archive" class="h-8 w-8 text-teal-600"></i>
+            </div>
+            <h1 class="text-3xl md:text-4xl font-extrabold text-slate-900">Plano de Execução do Projeto FortFisc - ano 2025</h1>
+            <p class="text-slate-600 mt-2 text-lg">Plano de trabalho geral e desenvolvimento de sistemas</p>
+        </header>
+
+        <!-- Main Content -->
+        <main>
+            <!-- Tab Navigation -->
+            <nav class="bg-white rounded-lg shadow-sm mb-8 p-2 flex justify-center items-center space-x-2 sm:space-x-4">
+                <button data-view="visao-geral" class="tab-btn active font-bold py-3 px-2 sm:px-6 text-slate-700">
+                    <span class="flex items-center"><i data-feather="pie-chart" class="mr-2 h-5 w-5"></i>Visão Geral</span>
+                </button>
+                <button data-view="plano-trabalho" class="tab-btn font-bold py-3 px-2 sm:px-6 text-slate-700">
+                    <span class="flex items-center"><i data-feather="clipboard" class="mr-2 h-5 w-5"></i>Plano de Trabalho</span>
+                </button>
+                <button data-view="desenvolvimento-sistemas" class="tab-btn font-bold py-3 px-2 sm:px-6 text-slate-700">
+                     <span class="flex items-center"><i data-feather="cpu" class="mr-2 h-5 w-5"></i>Desenvolvimento</span>
+                </button>
+            </nav>
+
+            <!-- Content Sections (Views) -->
+            <div id="views-container">
+                
+                <!-- Visão Geral View -->
+                <section id="view-visao-geral" class="view active">
+                    <!-- KPIs -->
+                    <div id="kpi-geral-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        <!-- KPI cards will be injected here -->
+                    </div>
+                    <!-- Charts -->
+                    <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
+                        <div class="lg:col-span-3 card p-6">
+                             <h3 class="text-xl font-bold text-slate-800 mb-4 text-center">Orçamento 2025 por Categoria</h3>
+                            <div class="chart-container h-80 lg:h-96">
+                                <canvas id="geralBudgetByCategoryChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="lg:col-span-2 card p-6">
+                            <h3 class="text-xl font-bold text-slate-800 mb-4 text-center">Produtos por Status</h3>
+                             <div class="chart-container h-80 lg:h-96">
+                                <canvas id="geralStatusChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Plano de Trabalho View -->
+                <section id="view-plano-trabalho" class="view hidden">
+                    <!-- Filters -->
+                     <div class="card p-4 mb-8">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <!-- Category Filter -->
+                            <div id="filters-plano-trabalho-categoria">
+                                <label class="font-semibold text-slate-600 text-sm mb-2 block">Filtrar por Categoria:</label>
+                                <div class="flex flex-wrap justify-center bg-slate-100 p-1.5 rounded-lg">
+                                    <button data-filter-group="category" data-filter="all" class="filter-btn flex-1 py-2 px-4 rounded-md font-semibold text-slate-600 text-sm">Todos</button>
+                                    <button data-filter-group="category" data-filter="Aquisições" class="filter-btn flex-1 py-2 px-4 rounded-md font-semibold text-slate-600 text-sm">Aquisições</button>
+                                    <button data-filter-group="category" data-filter="Sistemas" class="filter-btn flex-1 py-2 px-4 rounded-md font-semibold text-slate-600 text-sm">Sistemas</button>
+                                    <button data-filter-group="category" data-filter="Serviços" class="filter-btn flex-1 py-2 px-4 rounded-md font-semibold text-slate-600 text-sm">Serviços</button>
+                                </div>
+                            </div>
+                             <!-- Status Filter -->
+                            <div id="filters-plano-trabalho-status">
+                                <label class="font-semibold text-slate-600 text-sm mb-2 block">Filtrar por Status:</label>
+                                <div class="flex flex-wrap justify-center bg-slate-100 p-1.5 rounded-lg">
+                                    <button data-filter-group="status" data-filter="all" class="filter-btn flex-1 py-2 px-4 rounded-md font-semibold text-slate-600 text-sm">Todos</button>
+                                    <button data-filter-group="status" data-filter="Iniciado" class="filter-btn flex-1 py-2 px-4 rounded-md font-semibold text-slate-600 text-sm">Iniciado</button>
+                                    <button data-filter-group="status" data-filter="Planejado" class="filter-btn flex-1 py-2 px-4 rounded-md font-semibold text-slate-600 text-sm">Planejado</button>
+                                </div>
+                            </div>
+                            <!-- Search -->
+                            <div>
+                                <label class="font-semibold text-slate-600 text-sm mb-2 block">Buscar por nome ou ID:</label>
+                                <div class="relative">
+                                    <input type="text" id="search-plano-trabalho" class="w-full py-2.5 px-4 pl-10 rounded-lg border border-slate-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500" placeholder="Ex: P4238, Base móvel...">
+                                    <i data-feather="search" class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Cards Container -->
+                    <div id="cards-plano-trabalho" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                        <!-- Cards will be injected here -->
+                    </div>
+                </section>
+
+                <!-- Desenvolvimento de Sistemas View -->
+                <section id="view-desenvolvimento-sistemas" class="view hidden">
+                     <!-- Filters -->
+                     <div class="card p-4 mb-8">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <!-- Component Filter -->
+                            <div id="filters-desenvolvimento-componente">
+                                <label class="font-semibold text-slate-600 text-sm mb-2 block">Filtrar por Componente:</label>
+                                <div class="flex flex-wrap justify-center bg-slate-100 p-1.5 rounded-lg">
+                                    <button data-filter-group="component" data-filter="all" class="filter-btn flex-1 py-2 px-4 rounded-md font-semibold text-slate-600 text-sm">Todos</button>
+                                    <button data-filter-group="component" data-filter="2" class="filter-btn flex-1 py-2 px-4 rounded-md font-semibold text-slate-600 text-sm">Componente 2</button>
+                                    <button data-filter-group="component" data-filter="3" class="filter-btn flex-1 py-2 px-4 rounded-md font-semibold text-slate-600 text-sm">Componente 3</button>
+                                </div>
+                            </div>
+                             <!-- Status Filter -->
+                            <div id="filters-desenvolvimento-status">
+                                <label class="font-semibold text-slate-600 text-sm mb-2 block">Filtrar por Status:</label>
+                                <div class="flex flex-wrap justify-center bg-slate-100 p-1.5 rounded-lg">
+                                    <button data-filter-group="status" data-filter="all" class="filter-btn flex-1 py-2 px-4 rounded-md font-semibold text-slate-600 text-sm">Todos</button>
+                                    <button data-filter-group="status" data-filter="Iniciado" class="filter-btn flex-1 py-2 px-4 rounded-md font-semibold text-slate-600 text-sm">Iniciado</button>
+                                </div>
+                            </div>
+                            <!-- Search -->
+                            <div>
+                                <label class="font-semibold text-slate-600 text-sm mb-2 block">Buscar por nome ou ID:</label>
+                                 <div class="relative">
+                                    <input type="text" id="search-desenvolvimento" class="w-full py-2.5 px-4 pl-10 rounded-lg border border-slate-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500" placeholder="Ex: P2309, Sinaflor...">
+                                    <i data-feather="search" class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                     <!-- Cards Container -->
+                    <div id="cards-desenvolvimento-sistemas" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                        <!-- Cards will be injected here -->
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Details Modal -->
+    <div id="details-modal" class="modal-overlay fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center p-4 opacity-0 pointer-events-none z-50">
+        <div class="modal-content bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto opacity-0">
+            <!-- Modal Header -->
+            <div class="sticky top-0 bg-white p-5 border-b border-slate-200 flex justify-between items-center">
+                <div>
+                    <h3 id="modal-title" class="text-xl font-bold text-slate-900"></h3>
+                    <p id="modal-id" class="text-sm font-semibold text-teal-600"></p>
+                </div>
+                <button id="close-modal-btn" class="text-slate-500 hover:text-slate-800 transition">
+                    <i data-feather="x" class="h-7 w-7"></i>
+                </button>
+            </div>
+            <!-- Modal Body -->
+            <div id="modal-body" class="p-6">
+                <!-- Content will be injected here -->
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+        // --- DATA SOURCE ---
+        // This data is a consolidation of all provided documents (index.html, index2.html, and the .docx work plans)
+        // The main source is "Plano de trabalho 2025 - Anexo I", enriched with details from the other documents.
+        const allData = [
+            {
+                id: 'P1304', name: 'Contratação de equipe de gestão do projeto', category: 'Serviços', component: 1,
+                status: 'Planejado', objective: 'Contratar 11 especialistas para a implementação da unidade de gestão do projeto.',
+                deadline: '11/2030', budget2025: 400000.00, totalBudget: 12000000.00,
+                responsibleDept: 'Copes', contracts: [{ company: 'Não definido', value: 400000.00 }]
+            },
+            {
+                id: 'P2309', name: 'Sistema de autuação e embargo remoto', category: 'Sistemas', component: 2,
+                status: 'Iniciado', objective: 'Desenvolver ferramenta que integra bases geográficas e imagens de satélite para geração de mapas e autuação remota.',
+                deliverable: 'Criação de banco de dados para cruzamento de camadas geográficas (PRODES, DETER, CAR, etc.) e recepção de embargos estaduais.',
+                deadline: '12/2030', budget2025: 870920.70, totalBudget: 17418414.00,
+                responsibleDept: 'CGFis/Cenima', contracts: [
+                    { company: 'CODEX REMOTE', value: 615829.80, object: 'Desenvolvimento Geoespacial' },
+                    { company: 'G4F SOLUÇÕES', value: 101133.45, object: 'Apoio em Cartografia' },
+                    { company: 'STEFANINI', value: 153957.45, object: 'Apoio Técnico em TIC' }
+                ]
+            },
+            {
+                id: 'P2511', name: 'Sistema de monitoramento da recuperação vegetal', category: 'Sistemas', component: 2,
+                status: 'Iniciado', objective: 'Desenvolver e aprimorar o sistema que utiliza geotecnologias para monitorar a recuperação vegetal.',
+                deliverable: 'Consolidação de dados de áreas a serem recuperadas e desenvolvimento de módulo geoespacial com índices espectrais.',
+                deadline: '12/2030', budget2025: 748098.55, totalBudget: 15631910.00,
+                responsibleDept: 'DBFlo/Cenima', contracts: [
+                    { company: 'CODEX REMOTE', value: 517572.08, object: 'Desenvolvimento Geoespacial' },
+                    { company: 'G4F SOLUÇÕES', value: 101133.45, object: 'Apoio em Cartografia' },
+                    { company: 'STEFANINI', value: 129393.02, object: 'Apoio Técnico em TIC' }
+                ]
+            },
+            {
+                id: 'P3114', name: 'Aprimoramento do SINAFLOR', category: 'Sistemas', component: 3,
+                status: 'Iniciado', objective: 'Aperfeiçoar o sistema de controle de produtos florestais (SINAFLOR) com novos módulos e integrações.',
+                deliverable: 'Melhorias no módulo de inteligência geográfica para cruzamento de dados e geração de alertas.',
+                deadline: '12/2030', budget2025: 1000000.00, totalBudget: 22331300.00,
+                responsibleDept: 'DBFlo', contracts: [ { company: 'CODEX REMOTE', value: 1000000.00, object: 'Desenvolvimento Geoespacial' } ]
+            },
+            {
+                id: 'P3215', name: 'Serviço terceirizado para notificações', category: 'Serviços', component: 3,
+                status: 'Planejado', objective: 'Acelerar procedimentos de notificação e registro relativo ao processo sancionador ambiental.',
+                deadline: '11/2028', budget2025: 350000.00, totalBudget: 6300000.00,
+                responsibleDept: 'Cenpsa', contracts: [{ company: 'Não definido', value: 350000.00 }]
+            },
+            {
+                id: 'P3316', name: 'Sistema de controle da cadeia do mercúrio', category: 'Sistemas', component: 3,
+                status: 'Iniciado', objective: 'Desenvolver sistema informatizado para o controle e rastreabilidade da cadeia de mercúrio.',
+                deliverable: 'Entrega dos módulos de Habilitação, Destinação de Mercúrio e emissão/análise do DOMM.',
+                deadline: '12/2028', budget2025: 73693.29, totalBudget: 736932.90,
+                responsibleDept: 'Diqua', contracts: [
+                    { company: 'JOIN TECNOLOGIA', value: 58000.00, object: 'Fábrica de Software' },
+                    { company: 'STEFANINI', value: 15693.29, object: 'Apoio Técnico em TIC' }
+                ]
+            },
+            {
+                id: 'P3317', name: 'Estudo para descomissionamento de cloro-álcalis', category: 'Serviços', component: 3,
+                status: 'Planejado', objective: 'Adquirir conhecimento técnico para auxiliar no processo de descomissionamento das cloro-álcalis.',
+                deadline: 'Não definido', budget2025: 100000.00, totalBudget: 100000.00,
+                responsibleDept: 'Diqua', contracts: [{ company: 'Não definido', value: 100000.00 }]
+            },
+            {
+                id: 'P3318', name: 'Aquisição de kits para acondicionamento de mercúrio', category: 'Aquisições', component: 3,
+                status: 'Planejado', objective: 'Estruturar o acondicionamento de mercúrio apreendido nos 9 estados da Amazônia Legal.',
+                deadline: 'Não definido', budget2025: 54000.00, totalBudget: 54000.00,
+                responsibleDept: 'Diqua', contracts: [{ company: 'Não definido', value: 54000.00 }]
+            },
+            {
+                id: 'P3524', name: 'Sistema informatizado da Certidão Ambiental', category: 'Sistemas', component: 3,
+                status: 'Iniciado', objective: 'Desenvolver o software da Certidão Ambiental, integrando dados de sistemas de controle.',
+                deliverable: 'Desenvolvimento do software, APIs e integração de dados para a Certidão Ambiental.',
+                deadline: '12/2028', budget2025: 434219.72, totalBudget: 3126382.00,
+                responsibleDept: 'Diqua', contracts: [
+                    { company: 'JOIN TECNOLOGIA', value: 350000.00, object: 'Fábrica de Software' },
+                    { company: 'STEFANINI', value: 84219.72, object: 'Apoio Técnico em TIC' }
+                ]
+            },
+            {
+                id: 'P3525', name: 'Consultoria para Certidão Ambiental', category: 'Serviços', component: 3,
+                status: 'Planejado', objective: 'Levantar os requisitos da estrutura necessária para integrações do sistema informatizado da Certidão Ambiental.',
+                deadline: 'Não definido', budget2025: 40000.00, totalBudget: 40000.00,
+                responsibleDept: 'Diqua', contracts: [{ company: 'Não definido', value: 40000.00 }]
+            },
+            {
+                id: 'P4238', name: 'Bases móveis (contêiner com mobiliário)', category: 'Aquisições', component: 4,
+                status: 'Iniciado', objective: 'Fornecer infraestrutura temporária para bases avançadas da fiscalização na Amazônia Legal.',
+                deadline: '06/2026', budget2025: 20000000.00, totalBudget: 20000000.00,
+                responsibleDept: 'CGFis', contracts: [{ company: 'Vários (Ata 127/2024)', value: 15579994.00, object: 'Estruturas modulares, Sala de Situação, Alojamento, etc.' }]
+            },
+            {
+                id: 'P4239', name: 'Base móvel rodoviária (trailer off-road)', category: 'Aquisições', component: 4,
+                status: 'Iniciado', objective: 'Realizar a movimentação das instalações físicas das bases avançadas de fiscalização.',
+                deadline: '06/2026', budget2025: 6000000.00, totalBudget: 6000000.00,
+                responsibleDept: 'CGFis', contracts: [{ company: 'FÁBRICA DE MÓVEIS TRAILERCAR', value: 2027165.99, object: 'Caminhão Chassi Rígido 6x6' }]
+            },
+            {
+                id: 'P4240', name: 'Módulo suíte para descanso da tripulação', category: 'Aquisições', component: 4,
+                status: 'Iniciado', objective: 'Fornecer infraestrutura de descanso para os servidores nas bases avançadas.',
+                deadline: '06/2026', budget2025: 600000.00, totalBudget: 600000.00,
+                responsibleDept: 'CGFis', contracts: [{ company: 'MORUMBI INDUSTRIAL', value: 2055199.00, object: 'Estrutura Móvel para Quartos' }]
+            },
+            {
+                id: 'P4551', name: 'Aquisição de Terminal VHF portátil (DMR)', category: 'Aquisições', component: 4,
+                status: 'Planejado', objective: 'Modernizar e ampliar a capacidade de comunicação do Ibama em campo.',
+                deadline: 'Não definido', budget2025: 10800000.00, totalBudget: 10800000.00,
+                responsibleDept: 'CGFis', contracts: [{ company: 'Não definido', value: 10800000.00 }]
+            },
+            {
+                id: 'P4552', name: 'Aquisição de Repetidora VHF portátil (DMR/IP)', category: 'Aquisições', component: 4,
+                status: 'Planejado', objective: 'Modernizar e ampliar a capacidade de comunicação do Ibama em campo.',
+                deadline: 'Não definido', budget2025: 2700000.00, totalBudget: 2700000.00,
+                responsibleDept: 'CGFis', contracts: [{ company: 'Não definido', value: 2700000.00 }]
+            },
+            {
+                id: 'P4553', name: 'Aquisição de Repetidora VHF móvel (DRM/IP)', category: 'Aquisições', component: 4,
+                status: 'Planejado', objective: 'Modernizar e ampliar a capacidade de comunicação do Ibama em campo.',
+                deadline: 'Não definido', budget2025: 2400000.00, totalBudget: 2400000.00,
+                responsibleDept: 'CGFis', contracts: [{ company: 'Não definido', value: 2400000.00 }]
+            },
+            {
+                id: 'P4554', name: 'Aquisição de kit de internet satelital', category: 'Aquisições', component: 4,
+                status: 'Planejado', objective: 'Suprir lacunas no Sistema de Comunicação Crítica (SCC) da fiscalização ambiental.',
+                deadline: 'Não definido', budget2025: 2000000.00, totalBudget: 2000000.00,
+                responsibleDept: 'CGFis', contracts: [{ company: 'Não definido', value: 2000000.00 }]
+            }
+        ];
+        
+        // --- HELPERS ---
+        const formatCurrency = (value) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+        const getStatusClass = (status) => {
+            if (status === 'Iniciado') return 'text-green-700 bg-green-100';
+            if (status === 'Planejado') return 'text-amber-700 bg-amber-100';
+            if (status === 'Não iniciado') return 'text-slate-700 bg-slate-200';
+            return 'text-gray-700 bg-gray-100';
+        };
+
+        // --- STATE MANAGEMENT ---
+        let currentView = 'visao-geral';
+        let charts = {};
+        let filters = {
+            'plano-trabalho': { category: 'all', status: 'all', search: '' },
+            'desenvolvimento-sistemas': { component: 'all', status: 'all', search: '' }
+        };
+
+        // --- DOM ELEMENTS ---
+        const viewsContainer = document.getElementById('views-container');
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const modal = document.getElementById('details-modal');
+        const closeModalBtn = document.getElementById('close-modal-btn');
+
+        // --- RENDER FUNCTIONS ---
+        
+        /**
+         * Renders Key Performance Indicator (KPI) cards for the general view.
+         */
+        function renderGeralKPIs() {
+            const container = document.getElementById('kpi-geral-container');
+            const totalBudget = allData.reduce((sum, p) => sum + p.budget2025, 0);
+            const totalProducts = allData.length;
+            const started = allData.filter(p => p.status === 'Iniciado').length;
+            const planned = allData.filter(p => p.status === 'Planejado' || p.status === 'Não iniciado').length;
+
+            const kpis = [
+                { label: 'Orçamento Total (2025)', value: formatCurrency(totalBudget), icon: 'dollar-sign', color: 'teal-600' },
+                { label: 'Total de Produtos', value: totalProducts, icon: 'package', color: 'sky-600' },
+                { label: 'Produtos em Andamento', value: started, icon: 'play-circle', color: 'green-600' },
+                { label: 'Produtos Planejados', value: planned, icon: 'calendar', color: 'amber-600' }
+            ];
+
+            container.innerHTML = kpis.map(kpi => `
+                <div class="card kpi-card p-5 flex items-center" style="border-color: var(--color, #ccc); --color: ${kpi.color === 'teal-600' ? '#0d9488' : kpi.color === 'sky-600' ? '#0284c7' : kpi.color === 'green-600' ? '#16a34a' : '#d97706'}">
+                    <div class="mr-4 p-3 bg-${kpi.color.split('-')[0]}-100 rounded-full">
+                         <i data-feather="${kpi.icon}" class="h-7 w-7 text-${kpi.color}"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-semibold text-slate-500 uppercase">${kpi.label}</h3>
+                        <p class="text-3xl font-bold text-slate-800 mt-1">${kpi.value}</p>
+                    </div>
+                </div>
+            `).join('');
+            feather.replace();
+        }
+
+        /**
+         * Renders initiative cards based on the provided data and view.
+         * @param {Array} data - The array of product objects to render.
+         * @param {string} view - The current view ('plano-trabalho' or 'desenvolvimento-sistemas').
+         */
+        function renderCards(data, view) {
+            const containerId = `cards-${view.replace('-', '-')}`;
+            const container = document.getElementById(containerId);
+            if (!container) return;
+
+            // Sort data: Started items first, then by budget descending
+            const sortedData = [...data].sort((a,b) => {
+                if (a.status === 'Iniciado' && b.status !== 'Iniciado') return -1;
+                if (a.status !== 'Iniciado' && b.status === 'Iniciado') return 1;
+                return b.budget2025 - a.budget2025;
+            });
+
+            if (sortedData.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full text-center py-12">
+                         <i data-feather="search" class="h-16 w-16 text-slate-300 mx-auto"></i>
+                        <h3 class="mt-4 text-xl font-semibold text-slate-700">Nenhum produto encontrado</h3>
+                        <p class="text-slate-500 mt-1">Tente ajustar seus filtros de busca.</p>
+                    </div>`;
+                feather.replace();
+                return;
+            }
+
+            container.innerHTML = sortedData.map(item => `
+                <div class="card flex flex-col h-full">
+                    <div class="p-5 flex-grow">
+                        <div class="flex justify-between items-start mb-3">
+                            <span class="text-sm font-bold text-teal-700">${item.id}</span>
+                            <span class="text-xs font-bold px-3 py-1 rounded-full ${getStatusClass(item.status)}">${item.status}</span>
+                        </div>
+                        <h4 class="text-lg font-bold text-slate-900 mb-2">${item.name}</h4>
+                        <p class="text-sm text-slate-600 mb-4 h-16 overflow-hidden">${item.objective}</p>
+                    </div>
+                    <div class="mt-auto pt-4 p-5 border-t border-slate-100">
+                        <div class="flex justify-between items-end">
+                            <div>
+                               <button data-id="${item.id}" class="details-btn inline-flex items-center text-sm font-semibold text-teal-600 hover:text-teal-800">
+                                    Ver Detalhes <i data-feather="arrow-right" class="ml-1 h-4 w-4"></i>
+                               </button>
+                            </div>
+                            <span class="font-bold text-slate-800 text-lg">${formatCurrency(item.budget2025)}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            feather.replace();
+        }
+
+        /**
+         * Creates or updates charts for the 'Visão Geral' view.
+         */
+        function renderGeralCharts() {
+            // Budget by Category Chart
+            const budgetByCat = allData.reduce((acc, p) => {
+                acc[p.category] = (acc[p.category] || 0) + p.budget2025;
+                return acc;
+            }, {});
+            
+            const catCtx = document.getElementById('geralBudgetByCategoryChart').getContext('2d');
+            if (charts.geralBudget) charts.geralBudget.destroy();
+            charts.geralBudget = new Chart(catCtx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(budgetByCat),
+                    datasets: [{
+                        label: 'Orçamento 2025',
+                        data: Object.values(budgetByCat),
+                        backgroundColor: ['#f97316', '#0ea5e9', '#14b8a6'],
+                        borderRadius: 6,
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+                    plugins: { legend: { display: false } },
+                    scales: { x: { ticks: { callback: v => formatCurrency(v).replace(',00', '') } } }
+                }
+            });
+
+            // Status Chart
+            const statusCounts = allData.reduce((acc, p) => {
+                acc[p.status] = (acc[p.status] || 0) + 1;
+                return acc;
+            }, {});
+
+            const statusCtx = document.getElementById('geralStatusChart').getContext('2d');
+            if (charts.geralStatus) charts.geralStatus.destroy();
+            charts.geralStatus = new Chart(statusCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(statusCounts),
+                    datasets: [{
+                        data: Object.values(statusCounts),
+                        backgroundColor: ['#f59e0b', '#16a34a', '#64748b'],
+                        borderColor: '#f0f2f5',
+                        borderWidth: 5
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { font: { size: 14 } } } }
+                }
+            });
+        }
+        
+        // --- MODAL LOGIC ---
+        function openModal(itemId) {
+            const item = allData.find(p => p.id === itemId);
+            if (!item) return;
+
+            document.getElementById('modal-title').textContent = item.name;
+            document.getElementById('modal-id').textContent = item.id;
+            
+            const body = document.getElementById('modal-body');
+            body.innerHTML = `
+                <div class="space-y-6">
+                    <div>
+                        <h4 class="font-semibold text-slate-500 text-sm uppercase mb-2">Objetivo Principal</h4>
+                        <p class="text-slate-700">${item.objective}</p>
+                    </div>
+
+                    ${item.deliverable ? `
+                    <div>
+                        <h4 class="font-semibold text-slate-500 text-sm uppercase mb-2">Principal Entrega</h4>
+                        <p class="text-slate-700">${item.deliverable}</p>
+                    </div>
+                    ` : ''}
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <h4 class="font-semibold text-slate-500 text-sm uppercase mb-2">Status</h4>
+                            <span class="text-sm font-bold px-3 py-1 rounded-full ${getStatusClass(item.status)}">${item.status}</span>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-slate-500 text-sm uppercase mb-2">Prazo Final</h4>
+                            <p class="text-slate-700 font-semibold">${item.deadline}</p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-slate-500 text-sm uppercase mb-2">Orçamento 2025</h4>
+                            <p class="text-slate-700 font-bold text-lg">${formatCurrency(item.budget2025)}</p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-slate-500 text-sm uppercase mb-2">Orçamento Total Financiado</h4>
+                            <p class="text-slate-700 font-bold text-lg">${formatCurrency(item.totalBudget)}</p>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="font-semibold text-slate-500 text-sm uppercase mb-2">Contratos Associados (2025)</h4>
+                        <ul class="divide-y divide-slate-100 border border-slate-200 rounded-lg">
+                            ${item.contracts.map(c => `
+                                <li class="p-3">
+                                    <div class="flex justify-between items-center">
+                                        <div>
+                                            <p class="font-bold text-slate-800">${c.company}</p>
+                                            <p class="text-sm text-slate-500">${c.object || 'Serviços Diversos'}</p>
+                                        </div>
+                                        <p class="font-semibold text-teal-600">${formatCurrency(c.value)}</p>
+                                    </div>
+                                </li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                </div>
+            `;
+            modal.classList.add('active');
+        }
+
+        function closeModal() {
+            modal.classList.remove('active');
+        }
+        
+        // --- EVENT HANDLERS & INITIALIZATION ---
+
+        /**
+         * Switches the active view.
+         * @param {string} viewId - The ID of the view to activate.
+         */
+        function switchView(viewId) {
+            currentView = viewId;
+            // Update tab buttons
+            tabBtns.forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.view === viewId);
+            });
+            // Update view visibility
+            document.querySelectorAll('.view').forEach(view => {
+                view.classList.toggle('hidden', view.id !== `view-${viewId}`);
+            });
+
+            // Render content for the new view
+            applyFilters();
+        }
+
+        /**
+         * Applies the current filters and re-renders the content for the active view.
+         */
+        function applyFilters() {
+            if (currentView === 'visao-geral') {
+                renderGeralKPIs();
+                renderGeralCharts();
+                return;
+            }
+            
+            const viewFilters = filters[currentView];
+            let filteredData;
+
+            if (currentView === 'plano-trabalho') {
+                filteredData = allData;
+            } else { // desenvolvimento-sistemas
+                filteredData = allData.filter(d => d.category === 'Sistemas');
+            }
+
+            // Apply category/component filter
+            if (currentView === 'plano-trabalho') {
+                if (viewFilters.category !== 'all') {
+                    filteredData = filteredData.filter(item => item.category === viewFilters.category);
+                }
+            } else {
+                 if (viewFilters.component !== 'all') {
+                    filteredData = filteredData.filter(item => String(item.component) === viewFilters.component);
+                }
+            }
+            
+            // Apply status filter
+            if (viewFilters.status !== 'all') {
+                // Since "Não iniciado" data was changed to "Iniciado", we don't need a specific filter case for it.
+                filteredData = filteredData.filter(item => item.status === viewFilters.status);
+            }
+            
+            // Apply search filter
+            if (viewFilters.search) {
+                const searchTerm = viewFilters.search.toLowerCase();
+                filteredData = filteredData.filter(item => 
+                    item.name.toLowerCase().includes(searchTerm) || 
+                    item.id.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            renderCards(filteredData, currentView);
+        }
+
+        // --- Event Listeners ---
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => switchView(btn.dataset.view));
+        });
+
+        // Filter buttons
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const group = btn.dataset.filterGroup;
+                const value = btn.dataset.filter;
+                const view = btn.closest('.view').id.replace('view-', '');
+                
+                // Update state
+                filters[view][group] = value;
+                
+                // Update UI for the clicked group
+                document.querySelectorAll(`#view-${view} .filter-btn[data-filter-group="${group}"]`).forEach(b => {
+                    b.classList.toggle('active', b.dataset.filter === value);
+                });
+
+                applyFilters();
+            });
+        });
+
+        // Search inputs
+        document.querySelectorAll('input[type="text"]').forEach(input => {
+            input.addEventListener('keyup', (e) => {
+                const view = e.target.closest('.view').id.replace('view-', '');
+                filters[view].search = e.target.value;
+                applyFilters();
+            });
+        });
+
+        // Modal listeners
+        closeModalBtn.addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeModal();
+        });
+
+        // Details button listener (using event delegation)
+        viewsContainer.addEventListener('click', (e) => {
+            const btn = e.target.closest('.details-btn');
+            if (btn) {
+                openModal(btn.dataset.id);
+            }
+        });
+
+        // --- Initial Load ---
+        function initialize() {
+            feather.replace();
+            
+            // Set initial active filters
+            document.querySelectorAll('.filter-btn[data-filter="all"]').forEach(btn => btn.classList.add('active'));
+
+            // Initial render
+            switchView('visao-geral');
+        }
+
+        initialize();
+    });
+    </script>
+</body>
+</html>
